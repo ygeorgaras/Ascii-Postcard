@@ -8,7 +8,9 @@
 + Create ascii darkness scale
 + Use darkness vals to generate ascii string
 + Generate ascii art image
++ Investigating OpenCV to smooth edges for better result
++ Creating Canny image to find edges of input image
 
-- Investigating OpenCV to smooth edges for better result
+- Use the regular image along with the canny image to generate a better ascii art template
 - Add custom text option
 - Add location placement for text
