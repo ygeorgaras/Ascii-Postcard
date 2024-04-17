@@ -1,5 +1,6 @@
 from PIL import Image
 from ImgToCanny import applyCannyEdgeDetection
+from DisplayAsciiArt import displayAsciiArt
 import pyperclip
 import time
 
@@ -8,7 +9,7 @@ ASCII_CHARS = "Ñ@#W$9876543210?!abc;:+=-,._ "
 CHAR_HEIGHT = 4
 CHAR_WIDTH = 2
 NUM_PIXELS_PER_CELL = CHAR_HEIGHT * CHAR_WIDTH
-IMAGE_PATH = "C:/Python_Projects/Ascii-Postcard/Ascii_Postcard/galata.jpg"
+IMAGE_PATH = "C:/Python_Projects/Ascii-Postcard/Ascii_Postcard/sunset.jpg"
 ROW_PANELS = 0
 COL_PANELS = 0
 
@@ -112,6 +113,7 @@ def main():
         asciiColorValuesMap, asciiValuesMap = getAsciiValuesMap(cImage, edgeImage) # Get the values for these dictionaries
         asciiString = createAsciiArt(asciiColorValuesMap, asciiValuesMap)
         pyperclip.copy(asciiString) # Copy to clipboard
+        displayAsciiArt(asciiString)
         
 if __name__ == "__main__":
     start_time = time.time()

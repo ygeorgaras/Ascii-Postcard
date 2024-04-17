@@ -12,8 +12,8 @@
 + Creating Canny image to find edges of input image
 + Use the regular image along with the canny image to generate a better ascii art template
 + Added adjustAspectRatio to imrpove resolution
++ Add window to show ASCII during runtime
 
 - If image is very large use Pillow to reduce the size of the image and text
 - Add custom text option
 - Add location placement for text
-- Add window to show ASCII during runtime
