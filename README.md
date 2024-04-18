@@ -13,7 +13,13 @@
 + Use the regular image along with the canny image to generate a better ascii art template
 + Added adjustAspectRatio to imrpove resolution
 + Add window to show ASCII during runtime
++ Add custom text option
++ Using pyfiglet to generate text
 
-- If image is very large use Pillow to reduce the size of the image and text
-- Add custom text option
+- Create UI
+    - Select image
+    - Add text
+    - Select text location
+    - Select font
 - Add location placement for text
+- If image is very large use Pillow to reduce the size of the image and text
