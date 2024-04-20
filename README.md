@@ -15,11 +15,12 @@
 + Add window to show ASCII during runtime
 + Add custom text option
 + Using pyfiglet to generate text
++ Create UI
+    + Select image
+    + Add text
+    + Select text location
+    + Select font
++ Add location placement for text
 
-- Create UI
-    - Select image
-    - Add text
-    - Select text location
-    - Select font
-- Add location placement for text
+- Adjust text location based on user input
 - If image is very large use Pillow to reduce the size of the image and text
