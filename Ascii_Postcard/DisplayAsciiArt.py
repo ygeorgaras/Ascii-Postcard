@@ -1,25 +1,21 @@
-import tkinter as tk
-from tkinter import scrolledtext
-from tkinter.font import Font
+import customtkinter as ctk
 
-def displayAsciiArt(asciiArt):
-    # Create a new tkinter window
-    root = tk.Tk()
-    root.title("ASCII Art Display")
+def displayAsciiArt(ascii_art):
+    # Set the theme to dark mode
+    ctk.set_appearance_mode("dark")
 
-    # Maximize the window
-    root.state('zoomed')  # This maximizes the window but keeps the window frame intact
+    # Create a new customTkinter window
+    app = ctk.CTk()
+    app.title("ASCII Art Display")
 
-    # Define a custom font: name, size, and style
-    custom_font = Font(family="Courier New", size=2)
-    
-    # Create a scrolled text widget
-    text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=custom_font)
-    text_area.pack(fill=tk.BOTH, expand=True)
+    # Define a custom font for the text area
+    custom_font = ctk.CTkFont(family="Courier New", size=4)  # Adjust the font size if necessary
 
-    # Insert the ASCII art into the text widget
-    text_area.insert(tk.INSERT, asciiArt)
-    text_area.config(state=tk.DISABLED)
+    # Create a text widget to display the ASCII art
+    text_area = ctk.CTkTextbox(app, text_color="white", fg_color="#222222", wrap="word", font=custom_font)
+    text_area.pack(fill="both", expand=True, padx=10, pady=10)
+    text_area.insert("end", ascii_art)  # Insert ASCII art into the text widget
+    text_area.configure(state="disabled")  # Make the text area read-only
 
-    # Start the tkinter event loop
-    root.mainloop()
+    # Maximize the window (not full-screen, retains window chrome)
+    app.state('zoomed')

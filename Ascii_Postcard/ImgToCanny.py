@@ -26,9 +26,4 @@ def applyCannyEdgeDetection(imagePath, lowThreshold=50, highThreshold=150):
     edgesColor = cv2.cvtColor(edgesDilated, cv2.COLOR_GRAY2BGR)
     combined = np.concatenate((imgColor, edgesColor), axis=1)
 
-    # Display the combined image
-    #cv2.imshow('Combined', combined)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
-
     return np.uint8(edgesDilated)

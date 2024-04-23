@@ -21,6 +21,4 @@
     + Select text location
     + Select font
 + Add location placement for text
-
-- Adjust text location based on user input
-- If image is very large use Pillow to reduce the size of the image and text
++ Adjust text location based on user input

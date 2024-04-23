@@ -3,12 +3,10 @@ from ImgToCanny import applyCannyEdgeDetection
 from DisplayAsciiArt import displayAsciiArt
 from AsciiText import createAsciiText
 import pyperclip
-import time
-
 
 ASCII_CHARS = "Ñ@#W$9876543210?!abc;:+=-,._ "
-CHAR_HEIGHT = 4
-CHAR_WIDTH = 2
+CHAR_HEIGHT = 0
+CHAR_WIDTH = 0
 NUM_PIXELS_PER_CELL = CHAR_HEIGHT * CHAR_WIDTH
 ROW_PANELS = 0
 COL_PANELS = 0
@@ -16,6 +14,17 @@ UPPER_SCORE, UPPER_SCORE_INDEX = '‾', 256
 VERTICAL_BAR, VERTICAL_BAR_INDEX = '|', 257
 UNDER_SCORE, UNDER_SCORE_INDEX = '_', 258
 TEXT_AREA = 260
+TEXT_LOCATION_OPTIONS = {
+    "Centered" : (0.5,0.5),
+    "Top" : (0.5,0.25), 
+    "Bottom" : (0.5,0.75),
+    "Left" : (0.25, 0.5),
+    "Right" : (0.75, 0.5),
+    "Top-Left" : (0.25,0.25),
+    "Bot-Left" : (0.25,0.75),
+    "Top-Right" : (0.75,0.25),
+    "Bot-Right" : (0.75,0.75)
+    }
 
 def getDarkness(xStart, yStart, img):
     brightnessTotal = 0
@@ -34,7 +43,8 @@ def getDarkness(xStart, yStart, img):
 def getAvgColor(xStart, yStart, image):
     # Initialize the sum of the colors
     red, green, blue = 0, 0, 0
-
+    if image.mode == 'L':
+        return 0
     # Iterate over each pixel in the specified range
     for x in range(xStart, min(xStart + CHAR_WIDTH, image.width)):
         for y in range(yStart, min(yStart + CHAR_HEIGHT, image.height)):
@@ -67,44 +77,48 @@ def avgColorToAscii(brightness):
     # Return the ASCII character at the index
     return ASCII_CHARS[index]
 
-def createAsciiArt(colors, canny, text = {}, textBoarder = {}):
+def createAsciiArt(colorsMap, cannyMap, textMap = {}, textBoarder = {}):
     prevRow = -1
     asciiArt = []
-    for (y, x), brightness in sorted(colors.items()):
+    for (y, x), brightness in sorted(colorsMap.items()):
         if prevRow != y:
             if prevRow != -1:
                 asciiArt.append("\n")
             prevRow = y
-        # Check for edge
-        if canny[(y, x)] < 255:  # Assuming edge pixels are marked with 255
+
+        if colorsMap[(y,x)] == UPPER_SCORE_INDEX:
+            asciiArt.append(UPPER_SCORE)
+        elif colorsMap[(y,x)] == VERTICAL_BAR_INDEX:
+            asciiArt.append(VERTICAL_BAR)
+        elif colorsMap[(y,x)] == UNDER_SCORE_INDEX:
+            asciiArt.append(UNDER_SCORE)
+        elif colorsMap[(y,x)] == TEXT_AREA:
+            textX = x - textBoarder[0] - 1
+            textY = y - textBoarder[1] - 1
+            if 0 <= textX < textBoarder[2] and 0 <= textY < textBoarder[3]:
+                asciiArt.append(textMap[(textY, textX)])
+                # Check for edge
+        elif cannyMap[(y, x)] < 255:  # Check cannyAssuming edge pixels are marked with 255
             # If there's an edge, use a darker ASCII character
             asciiArt.append(ASCII_CHARS[-1])
         else:
-            if colors[(y,x)] == UPPER_SCORE_INDEX:
-                asciiArt.append(UPPER_SCORE)
-            elif colors[(y,x)] == VERTICAL_BAR_INDEX:
-                asciiArt.append(VERTICAL_BAR)
-            elif colors[(y,x)] == UNDER_SCORE_INDEX:
-                asciiArt.append(UNDER_SCORE)
-            elif colors[(y,x)] == TEXT_AREA:
-                textX = x - textBoarder[0] - 1
-                textY = y - textBoarder[1] - 1
-                if 0 <= textX < textBoarder[2] and 0 <= textY < textBoarder[3]:
-                    asciiArt.append(text[(textY, textX)])
-            else:
-                # Otherwise, use the ASCII character corresponding to the brightness
-                asciiArt.append(avgColorToAscii(brightness))
+            # Otherwise, use the ASCII character corresponding to the brightness
+            asciiArt.append(avgColorToAscii(brightness))
+
     return ''.join(asciiArt)
 
 # TODO: Reduce aspect ratio if image is very large
 def adjustAspectRatio(height, width):
     global CHAR_HEIGHT, CHAR_WIDTH, NUM_PIXELS_PER_CELL, ROW_PANELS, COL_PANELS
     # Check if the image is vertically or horizontally oriented
+    if height == width:
+        CHAR_HEIGHT = 12
+        CHAR_WIDTH = 6
     if height > width:
         CHAR_HEIGHT = 4
         CHAR_WIDTH = 2
     elif height < width:
-        CHAR_HEIGHT = 4
+        CHAR_HEIGHT = 5
         CHAR_WIDTH = 3
 
     # Calculate the number of rows and columns of characters based on the adjusted character dimensions
@@ -115,51 +129,60 @@ def adjustAspectRatio(height, width):
 
 def selectLocation(x, y, textRows, textCols):
 
-    minLeftX = x - (textCols // 2) 
     minLeftY = y - (textRows // 2) 
-    maxRightX = x + (textCols // 2)
     maxRightY = y + (textRows // 2)
+
+    minLeftX = x - (textCols // 2) 
+    maxRightX = x + (textCols // 2)
+
+    if maxRightX > COL_PANELS:
+        inBoundsOffset = maxRightX - COL_PANELS + 1
+        maxRightX -= inBoundsOffset
+        minLeftX -= inBoundsOffset
+
     return (minLeftX, minLeftY, maxRightX, maxRightY)
 
 def analyzeAsciiArt(asciiArt):
     rows = asciiArt.strip().split('\n')  # Strip to remove any leading/trailing whitespace and split by newline
     numRows = len(rows)
-    num_cols = len(rows[0]) if numRows > 0 else 0  # Assume all rows have the same number of columns
+    numCols = len(rows[0]) if numRows > 0 else 0  # Assume all rows have the same number of columns
 
-    # Create an empty dictionary for the art_map
-    art_map = {}
+    # Create an empty dictionary for the artMap
+    artMap = {}
 
     # Dimensions expanded by 3 for the border
-    expanded_numRows = numRows + 3
-    expanded_num_cols = num_cols + 3
+    expandedNumRows = numRows + 3
+    expandedNumCols = numCols + 3
 
-    # Fill the art_map with border and art
-    for y in range(expanded_numRows):
-        for x in range(expanded_num_cols):
-            if y == 0 or y == expanded_numRows - 1:
-                art_map[(y, x)] = '-'  # Top and bottom border
-            elif x == 0 or x == expanded_num_cols - 1:
-                art_map[(y, x)] = '|'  # Left and right border
+    # Fill the artMap with border and art
+    for y in range(expandedNumRows):
+        for x in range(expandedNumCols):
+            if y == 0 or y == expandedNumRows - 1:
+                artMap[(y, x)] = '-'  # Top and bottom border
+            elif x == 0 or x == expandedNumCols - 1:
+                artMap[(y, x)] = '|'  # Left and right border
             else:
                 if y-1 < numRows and x-1 < len(rows[y-1]):
-                    art_map[(y, x)] = rows[y-1][x-1]
+                    artMap[(y, x)] = rows[y-1][x-1]
                 else:
-                    art_map[(y, x)] = ' '  # Fill in any gaps
+                    artMap[(y, x)] = ' '  # Fill in any gaps
 
-    return art_map, expanded_numRows, expanded_num_cols
+    return artMap, expandedNumRows, expandedNumCols
 
 def getTextLocation(textLocation):
-    #TODO: Use textLocation to place text at desired input
-    pass
+    y = 0
+    x = 0
+    if textLocation in TEXT_LOCATION_OPTIONS:
+        y,x = TEXT_LOCATION_OPTIONS[textLocation]
+        return int(COL_PANELS * y), int(ROW_PANELS * x)
+    
+    return y,x
 
 def insertTextArea(map, text, textLocation):
-    ascii_text = createAsciiText(text)
-    textMap, textRows, textCols = analyzeAsciiArt(ascii_text)
-    #TODO: Modify to select locations
-    middleX = COL_PANELS // 2
-    middleY = ROW_PANELS // 2
-
-    topLeftX, topLeftY, botRightX, botRightY =  selectLocation(middleX, middleY, textRows, textCols)
+    asciiText = createAsciiText(text)
+    textMap, textRows, textCols = analyzeAsciiArt(asciiText)
+    middleTextY, middleTextX= getTextLocation(textLocation)
+    topLeftX, topLeftY, botRightX, botRightY =  selectLocation(middleTextY, middleTextX, textRows, textCols)
     
     for y in range(topLeftY, botRightY + 1):
         for x in range(topLeftX, botRightX + 1):
@@ -174,7 +197,6 @@ def insertTextArea(map, text, textLocation):
     return map, textMap, [topLeftX, topLeftY, botRightX, botRightY]
 
 def generateAsciiArt(imagePath, text, textLocation):
-    startTime = time.time()
     edgeImage = applyCannyEdgeDetection(imagePath, 50, 150)
     if edgeImage is not None:
         edgeImage = Image.fromarray(edgeImage)  # Convert numpy array to PIL Image
@@ -188,4 +210,3 @@ def generateAsciiArt(imagePath, text, textLocation):
             asciiString = createAsciiArt(asciiColorValuesMap, asciiValuesMap, {}, {})
         pyperclip.copy(asciiString) # Copy to clipboard
         displayAsciiArt(asciiString)
-        print(time.time() - startTime)

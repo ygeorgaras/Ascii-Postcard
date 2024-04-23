@@ -2,9 +2,9 @@ import customtkinter as ctk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import StringVar
-from AsciiPostcard import generateAsciiArt
+from AsciiPostcard import generateAsciiArt, TEXT_LOCATION_OPTIONS
 
-TEXT_LOCATION_OPTIONS = ["Centered", "Top", "Left"]
+MAX_TEXT_LENGTH = 10
 
 # Function to open file dialog and update file name text box
 def openFileDialog():
@@ -34,11 +34,11 @@ def generateAsciiImage():
 def onTextEntryChange(*args):
     text = textEntryVar.get()
     if text:  # If there is text, enable the dropdown
-        if len(text) == 20:
-            textEntryVar.set(text[:-1])
+        if len(text) >= MAX_TEXT_LENGTH:
+            textEntryVar.set(text[:MAX_TEXT_LENGTH])
         if textLocationDropdown._state == "disabled":
             textLocationDropdown.configure(state="normal")
-            textLocationDropdown.set(TEXT_LOCATION_OPTIONS[0])
+            textLocationDropdown.set(list(TEXT_LOCATION_OPTIONS.keys())[0])
     else:  # If there is no text, disable the dropdown
         textLocationDropdown.set("")
         textLocationDropdown.configure(state="disabled")
@@ -65,7 +65,7 @@ fileNameTextbox.pack(pady=10)
 
 
 # Description label for custom text entry
-customTextLabel = ctk.CTkLabel(app, text="Enter custom text (20 chars max):")
+customTextLabel = ctk.CTkLabel(app, text="Enter custom text ({} chars max):".format(MAX_TEXT_LENGTH))
 customTextLabel.pack(pady=(0, 0))
 
 # Custom text entry
@@ -77,7 +77,7 @@ textLocationLabel = ctk.CTkLabel(app, text="Choose text location in image:")
 textLocationLabel.pack(pady=(0, 0))
 
 # Drop-down menu for text location
-textLocationDropdown = ctk.CTkComboBox(app, values=TEXT_LOCATION_OPTIONS, state="disabled", width=350)
+textLocationDropdown = ctk.CTkComboBox(app, values=list(TEXT_LOCATION_OPTIONS.keys()), state="disabled", width=350)
 textLocationDropdown.pack(pady=10)
 
 # Button to generate ASCII image
