@@ -1,0 +1,6 @@
+customtkinter==5.2.2
+numpy==1.26.4
+opencv_python==4.9.0.80
+Pillow==10.3.0
+pyfiglet==1.0.2
+pyperclip==1.8.2
