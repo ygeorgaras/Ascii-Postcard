@@ -9,7 +9,7 @@ def displayAsciiArt(ascii_art):
     app.title("ASCII Art Display")
 
     # Define a custom font for the text area
-    custom_font = ctk.CTkFont(family="Courier New", size=4)  # Adjust the font size if necessary
+    custom_font = ctk.CTkFont(family="Courier New", size=3)  # Adjust the font size if necessary
 
     # Create a text widget to display the ASCII art
     text_area = ctk.CTkTextbox(app, text_color="white", fg_color="#222222", wrap="word", font=custom_font)
