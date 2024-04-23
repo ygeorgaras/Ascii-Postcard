@@ -142,32 +142,20 @@ def selectLocation(x, y, textRows, textCols):
 
     return (minLeftX, minLeftY, maxRightX, maxRightY)
 
-def analyzeAsciiArt(asciiArt):
-    rows = asciiArt.strip().split('\n')  # Strip to remove any leading/trailing whitespace and split by newline
-    numRows = len(rows)
-    numCols = len(rows[0]) if numRows > 0 else 0  # Assume all rows have the same number of columns
+def stringToMap(asciiArt):
+    # Split the string into lines
+    lines = asciiArt.split('\n')
+    
+    # Create a dictionary where each key is a coordinate tuple (y, x)
+    asciiMap = {}
+    for y, line in enumerate(lines):
+        for x, char in enumerate(line):
+            asciiMap[(y, x)] = char
 
-    # Create an empty dictionary for the artMap
-    artMap = {}
+    numRows = len(lines)
+    numCols = len(lines[0]) if numRows > 0 else 0  # Assume all rows have the same number of columns
 
-    # Dimensions expanded by 3 for the border
-    expandedNumRows = numRows + 3
-    expandedNumCols = numCols + 3
-
-    # Fill the artMap with border and art
-    for y in range(expandedNumRows):
-        for x in range(expandedNumCols):
-            if y == 0 or y == expandedNumRows - 1:
-                artMap[(y, x)] = '-'  # Top and bottom border
-            elif x == 0 or x == expandedNumCols - 1:
-                artMap[(y, x)] = '|'  # Left and right border
-            else:
-                if y-1 < numRows and x-1 < len(rows[y-1]):
-                    artMap[(y, x)] = rows[y-1][x-1]
-                else:
-                    artMap[(y, x)] = ' '  # Fill in any gaps
-
-    return artMap, expandedNumRows, expandedNumCols
+    return asciiMap, numRows, numCols
 
 def getTextLocation(textLocation):
     y = 0
@@ -180,13 +168,13 @@ def getTextLocation(textLocation):
 
 def insertTextArea(map, text, textLocation):
     asciiText = createAsciiText(text)
-    textMap, textRows, textCols = analyzeAsciiArt(asciiText)
+    textMap, textRows, textCols = stringToMap(asciiText)
     middleTextY, middleTextX= getTextLocation(textLocation)
     topLeftX, topLeftY, botRightX, botRightY =  selectLocation(middleTextY, middleTextX, textRows, textCols)
     
     for y in range(topLeftY, botRightY + 1):
-        for x in range(topLeftX, botRightX + 1):
-            if(x == topLeftX or x == botRightX):
+        for x in range(topLeftX, botRightX + 2):
+            if(x == topLeftX or x == botRightX + 1):
                 map[(y,x)] = VERTICAL_BAR_INDEX
             elif(y == topLeftY):
                 map[(y,x)] = UPPER_SCORE_INDEX
